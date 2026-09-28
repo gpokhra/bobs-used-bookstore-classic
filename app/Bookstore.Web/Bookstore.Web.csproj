@@ -79,7 +79,7 @@
     <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.2.1" />
     <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
-    <PackageReference Include="Autofac" Version="8.1.1" />
+    <PackageReference Include="Autofac" Version="9.3.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.1" />
     <PackageReference Include="NLog" Version="5.3.4" />
     <PackageReference Include="Microsoft.IdentityModel.Abstractions" Version="8.2.1" />
@@ -101,7 +101,7 @@
     <PackageReference Include="System.Numerics.Vectors" Version="4.6.0" />
     <PackageReference Include="AWS.Logger.Core" Version="3.3.3" />
     <PackageReference Include="jQuery" Version="3.7.1" />
-    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="10.0.0" />
     <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
   <ProjectExtensions>

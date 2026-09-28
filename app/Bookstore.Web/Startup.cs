@@ -1,37 +1,48 @@
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Bookstore.Web
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        private readonly IWebHostEnvironment _env;
+
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
+            _env = env;
             ConfigurationManager.Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllersWithViews();
-            //Added Services
+
+            // Register all bookstore services, repositories, DbContext
+            var authMode = Configuration["Services:Authentication"]
+                           ?? Configuration["Services/Authentication"]
+                           ?? "local";
+
+            var loggingMode = Configuration["Services:LoggingService"]
+                              ?? Configuration["Services/LoggingService"]
+                              ?? "local";
+
+            LoggingSetup.ConfigureNLog(loggingMode);
+
+            services.AddBookstoreAuthentication(authMode);
+
+            services.AddBookstoreServices(_env);
+
+            // Session support (used by shopping cart correlation ID)
+            services.AddSession();
+            services.AddHttpContextAccessor();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -41,20 +52,23 @@ namespace Bookstore.Web
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-            
-            //Added Middleware
 
             app.UseRouting();
+            app.UseSession();
 
-            app.UseAuthorization();
+            app.UseBookstoreAuthentication();
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllerRoute(
+                    name: "admin",
+                    pattern: "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
+
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
@@ -62,10 +76,13 @@ namespace Bookstore.Web
         }
     }
 
-    public class ConfigurationManager
+    /// <summary>
+    /// Static accessor so legacy-style helpers that can't take IConfiguration
+    /// via DI (e.g. AuthenticationSetup, DependencyInjectionSetup) can still
+    /// read configuration. Set once at startup before any service registration.
+    /// </summary>
+    public static class ConfigurationManager
     {
         public static IConfiguration Configuration { get; set; }
     }
-
 }
-
