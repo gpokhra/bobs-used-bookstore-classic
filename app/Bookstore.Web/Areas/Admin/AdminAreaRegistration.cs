@@ -1,0 +1,4 @@
+
+namespace Bookstore.Web.Areas
+{
+}
